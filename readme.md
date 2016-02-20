@@ -1,10 +1,13 @@
 # gjv
 
-A simple GeoJSON viewer, inspired by the incredible convenience of
-[vmd](https://github.com/yoshuawuyts/vmd).  Built with
-[mapbox-gl](https://github.com/mapbox/mapbox-gl-js).
+A simple cli-driven GeoJSON viewer, motivated by the incredible convenience of
+[vmd](https://github.com/yoshuawuyts/vmd).
 
-Prior art: [geojsonapp](https://github.com/mick/geojsonapp).
+Built with [electron](http://electron.atom.io/) and [mapbox-gl](https://github.com/mapbox/mapbox-gl-js), and owes much to this prior art: [geojsonapp](https://github.com/mick/geojsonapp).
+
+![demo](demo-1.gif)
+
+![demo](demo-2.gif)
 
 ## Install
 
@@ -15,7 +18,7 @@ npm install -g gjv
 ## Usage
 
 ```
-vmd [FILE]
+gjv [FILE]
 ```
 
 ## Dev

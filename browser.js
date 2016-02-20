@@ -30,7 +30,7 @@ isReachable('mapbox.com', function (_, online) {
   } else if (!argv.basemap) {
     basemap = dataStyle
     dataStyle.layers.forEach((layer) => { layer.layout.visibility = 'none' })
-  } else if (!/^[a-z]*:\/\//i.test(argv.basemap)) {
+  } else if (!hasScheme(argv.basemap)) {
     // assume it's a mapbox style, so prepend mapbox://styles/
     basemap = 'mapbox://styles/' + argv.basemap
   } else {
@@ -53,12 +53,29 @@ function onMapLoad () {
   printApiHelp()
 
   getStdin(function (stdin) {
-    const files = argv._.map((f) => path.resolve(process.cwd(), f))
-    const data = argv._.map((f) => JSON.parse(fs.readFileSync(f)))
-    if (stdin) {
-      files.push('STDIN')
-      data.push(JSON.parse(stdin))
+    // resolve local file references that arent 'something://'
+    const files = argv._.map((f) => {
+      if (!hasScheme(f)) {
+        return path.resolve(process.cwd(), f)
+      } else {
+        return f
+      }
+    })
+
+    // include stdin if it isn't in the list
+    if (stdin && !files.some((f) => f.startsWith('stdin://'))) {
+      files.push('stdin://stdin')
     }
+
+    // get actual data for each file in the list (used for finding view bounds)
+    const data = files.map((f) => {
+      if (f.startsWith('stdin://')) {
+        return JSON.parse(stdin)
+      } else {
+        f = path.resolve(process.cwd(), f)
+        return JSON.parse(fs.readFileSync(f))
+      }
+    })
 
     map.batch(function (batch) {
       files.forEach((f, i) => {
@@ -98,6 +115,7 @@ function fitGeojsonExtent (data) {
   } else {
     ext = extent(data)
   }
+  if (ext.some(isNaN)) { return }
   map.fitBounds([ [ext[0], ext[1]], [ext[2], ext[3]] ], {
     speed: 3,
     curve: 1.1,
@@ -147,3 +165,6 @@ function printData (data) {
   }
 }
 
+function hasScheme (url) {
+  return /^[a-z]*:\/\//i.test(url)
+}
