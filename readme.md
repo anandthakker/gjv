@@ -1,11 +1,22 @@
 # vgj
 
 A simple GeoJSON viewer, inspired by the incredible convenience of
-[`vmd`](https://github.com/yoshuawuyts/vmd).
+[vmd](https://github.com/yoshuawuyts/vmd).  Built with
+[mapbox-gl](https://github.com/mapbox/mapbox-gl-js).
 
 Prior art: [geojsonapp](https://github.com/mick/geojsonapp).
 
+## Install
 
+```
+npm install -g vgj
+```
+
+## Usage
+
+```
+vmd [FILE]
+```
 
 ## Dev
 

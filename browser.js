@@ -8,10 +8,12 @@ let extent = require('turf-extent')
 let styles
 
 window.start = function (args) {
-  mapboxgl.accessToken = 'pk.eyJ1IjoiYW5hbmR0aGFra2VyIiwiYSI6InJJSEp4RFkifQ.Ea75OuvCgvTqmnYwq6udeg'
+  let style = args.style || 'mapbox://styles/anandthakker/ciku12ple008m92klkh7ujf32'
+  mapboxgl.accessToken = args.accessToken || 'pk.eyJ1IjoiYW5hbmR0aGFra2VyIiwiYSI6InJJSEp4RFkifQ.Ea75OuvCgvTqmnYwq6udeg'
+
   var map = window.map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/anandthakker/ciku12ple008m92klkh7ujf32',
+    style: style,
     center: [0, 0],
     zoom: 2
   })

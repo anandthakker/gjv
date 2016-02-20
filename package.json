@@ -11,6 +11,7 @@
     "url": "http://anand.codes"
   },
   "electronVersion": "0.36.0",
+  "bin": "./bin/cli.js",
   "scripts": {
     "test": "eslint *.js test",
     "start": "electron .",
@@ -32,8 +33,8 @@
     "get-stdin": "^5.0.1",
     "lodash.debounce": "^4.0.3",
     "mapbox-gl": "^0.14.1",
-    "minimist": "^1.2.0",
-    "turf-extent": "^1.0.4"
+    "turf-extent": "^1.0.4",
+    "yargs": "^4.1.0"
   },
   "devDependencies": {
     "electron-packager": "^5.0.0",

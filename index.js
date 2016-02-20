@@ -1,12 +1,16 @@
 'use strict'
 const electron = require('electron')
 const getStdin = require('get-stdin')
-const argv = require('minimist')(process.argv.slice(2))
+const argv = require('./argv')
 
 const app = electron.app
 
 // report crashes to the Electron project
-require('crash-reporter').start()
+require('crash-reporter').start({
+  productName: 'vgj',
+  companyName: 'none',
+  submitURL: 'https://github.com/anandthakker/vgj/issues'
+})
 
 // adds debug features like hotkeys for triggering dev tools and reload
 require('electron-debug')()
