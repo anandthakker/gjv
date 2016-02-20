@@ -28,6 +28,7 @@
     "get-stdin": "^5.0.1",
     "lodash.debounce": "^4.0.3",
     "mapbox-gl": "^0.14.1",
+    "turf": "^2.0.2",
     "turf-extent": "^1.0.4",
     "yargs": "^4.1.0"
   },

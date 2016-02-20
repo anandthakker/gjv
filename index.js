@@ -1,9 +1,10 @@
 'use strict'
 const electron = require('electron')
-const getStdin = require('get-stdin')
+const getStdin = require('./get-stdin')
 const argv = require('./argv')
-
 const app = electron.app
+// prevent window being garbage collected
+let mainWindow
 
 // report crashes to the Electron project
 require('crash-reporter').start({
@@ -14,9 +15,6 @@ require('crash-reporter').start({
 
 // adds debug features like hotkeys for triggering dev tools and reload
 require('electron-debug')()
-
-// prevent window being garbage collected
-let mainWindow
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -31,22 +29,10 @@ app.on('activate', () => {
 })
 
 app.on('ready', () => {
+  mainWindow = createMainWindow()
   const protocol = electron.protocol
   protocol.registerStringProtocol('stdin', function (req, callback) {
-    getStdin().then(function (stdin) {
-      callback(stdin)
-    })
-  })
-  mainWindow = createMainWindow()
-
-  mainWindow.webContents.on('dom-ready', function () {
-    // pass cli args to the browser window to start client side
-    const start = `
-    if (typeof start === 'function') {
-      start(JSON.parse(${JSON.stringify(JSON.stringify(argv))}))
-    }
-    `
-    mainWindow.webContents.executeJavaScript(start)
+    getStdin(callback)
   })
 })
 
@@ -64,7 +50,7 @@ function createMainWindow () {
 
   win.loadURL(`file://${__dirname}/index.html`)
   win.on('closed', onClosed)
-  // win.webContents.openDevTools()
+  if (argv.showJson) { win.webContents.openDevTools() }
 
   return win
 }
