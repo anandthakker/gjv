@@ -1,8 +1,9 @@
 const argv = require('yargs')
 .options({
-  's': {
-    alias: 'style',
-    describe: 'an alternate mapbox://styles/... url to use as a basemap. Expected to have "point-data", "line-data", and "polygon-data" layers that will be copied and applied to your geojson.'
+  'b': {
+    alias: 'basemap',
+    default: 'mapbox://styles/mapbox/streets-v8',
+    describe: 'an alternate mapbox://styles/... url to use as a basemap.'
   },
   't': {
     alias: 'accessToken',

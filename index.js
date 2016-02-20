@@ -2,6 +2,7 @@
 const electron = require('electron')
 const getStdin = require('./get-stdin')
 const argv = require('./argv')
+const config = require('./config')
 const app = electron.app
 // prevent window being garbage collected
 let mainWindow
@@ -43,10 +44,7 @@ function onClosed () {
 }
 
 function createMainWindow () {
-  const win = new electron.BrowserWindow({
-    width: 900,
-    height: 600
-  })
+  const win = new electron.BrowserWindow(config.windowSettings)
 
   win.loadURL(`file://${__dirname}/index.html`)
   win.on('closed', onClosed)

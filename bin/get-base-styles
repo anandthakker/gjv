@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+'use strict'
+
+const needle = require('needle')
+const config = require('../config')
+
+const url = 'https://api.mapbox.com/styles/v1/{user}/{styleId}?access_token={token}'
+.replace('{user}', config.mapboxUsername)
+.replace('{styleId}', config.baseStylesId)
+.replace('{token}', config.mapboxAccessToken)
+
+function getBaseStyles (callback) {
+  needle.get(url, function (err, response) {
+    if (err) { return callback(err) }
+    if (response.statusCode < 200 || response.statusCode >= 400) { return callback(response) }
+
+    const style = response.body
+    delete style.metadata // studio metadata
+    // delete sprite & glyphs so that this style can work offline if needed
+    delete style.sprite
+    delete style.glyphs
+
+    style.sources = {
+      'land': {
+        type: 'geojson',
+        data: 'ne_110m_land.geojson'
+      }
+    }
+    style.layers
+    .filter((layer) => layer.type !== 'background')
+    .forEach(function (layer) {
+      delete layer['source-layer']
+      layer.source = 'land'
+    })
+    callback(null, style)
+  })
+}
+
+getBaseStyles(function (err, styles) {
+  if (err) { throw err }
+  console.log(JSON.stringify(styles, null, 2))
+})

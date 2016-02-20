@@ -2,80 +2,96 @@
 
 let fs = require('fs')
 let path = require('path')
+let mapboxgl = require('mapbox-gl/dist/mapbox-gl.js')
+let toColor = require('to-color')
+let isReachable = require('remote').require('is-reachable')
 let getStdin = require('remote').require('./get-stdin')
 let argv = require('remote').require('./argv')
-let mapboxgl = require('mapbox-gl/dist/mapbox-gl.js')
 let extent = require('./reduce-extent')
-
+let config = require('./config')
+let dataStyle = require('./base-styles.json')
 let turf = require('turf')
+
+mapboxgl.accessToken = argv.accessToken || config.mapboxAccessToken
 window.turf = turf
 
-// base styles
-let styles
-
-let style = argv.style || 'mapbox://styles/anandthakker/ciku12ple008m92klkh7ujf32'
-mapboxgl.accessToken = argv.accessToken || 'pk.eyJ1IjoiYW5hbmR0aGFra2VyIiwiYSI6InJJSEp4RFkifQ.Ea75OuvCgvTqmnYwq6udeg'
-
-var map = window.map = new mapboxgl.Map({
-  container: 'map',
-  style: style,
-  center: [0, 0],
-  zoom: 2
-})
-
-map.on('load', onMapLoad)
-
-let idCounter = 0
-let dataLayers = []
-function onMapLoad () {
-  styles = {
-    point: cloneStyle(map.getLayer('point-data')),
-    line: cloneStyle(map.getLayer('line-data')),
-    polygon: cloneStyle(map.getLayer('polygon-data'))
-  }
-  styles.point.filter = [ '==', '$type', 'Point' ]
-  styles.line.filter = [ '==', '$type', 'LineString' ]
-  styles.polygon.filter = [ '==', '$type', 'Polygon' ]
-
-  map.batch(function (batch) {
-    if (argv._.length) {
-      argv._.forEach((data) => addData(batch, 'data_' + idCounter++, data, dataLayers))
-    } else {
-      addData(batch, 'stdin', 'stdin://data', dataLayers)
-    }
-  })
-
-  window.data = {}
-  window.addToMap = function (data) {
-    map.batch(function (batch) {
-      addData(batch, 'data_' + idCounter++, data, dataLayers)
-      fitBounds(data)
-    })
-  }
-
-  console.log('%cData is available to play with on window.data, as is Turf.js', 'color: blue; font-weight: bold;')
-  console.log('Add data to the map with addToMap(moreGeojson)')
-  if (argv._.length) {
-    const data = argv._.map((f) => JSON.parse(fs.readFileSync(f)))
-    argv._.forEach((f, i) => {
-      f = path.basename(f).replace(/\..*$/, '')
-      console.log('%c' + f, 'color: green; font-weight: bold;')
-      console.log(data[i])
-      window.data[f] = data[i]
-    })
-    fitBounds(data)
-  } else {
-    getStdin(function (data) {
-      data = JSON.parse(data)
-      console.log('%cSTDIN', 'color: green; font-weight: bold;')
-      console.log(data)
-      window.data.STDIN = data
-      fitBounds(data)
-    })
-  }
+const dataLayers = {
+  point: dataStyle.layers.find((l) => l.id === 'point-data'),
+  line: dataStyle.layers.find((l) => l.id === 'line-data'),
+  polygon: dataStyle.layers.find((l) => l.id === 'polygon-data')
 }
 
-function fitBounds (data) {
+let map
+let basemap
+isReachable('mapbox.com', function (_, online) {
+  if (!online) { argv.basemap = 'offline' }
+  if (/^(plain|land|offline)$/.test(argv.basemap)) {
+    basemap = dataStyle
+  } else if (!argv.basemap) {
+    basemap = dataStyle
+    dataStyle.layers.forEach((layer) => { layer.layout.visibility = 'none' })
+  } else if (!/^[a-z]*:\/\//i.test(argv.basemap)) {
+    // assume it's a mapbox style, so prepend mapbox://styles/
+    basemap = 'mapbox://styles/' + argv.basemap
+  } else {
+    // do this because 'basemap' will still be set on a ctrl-R reload
+    basemap = basemap || argv.basemap
+  }
+
+  map = window.map = new mapboxgl.Map({
+    container: 'map',
+    style: basemap,
+    center: [0, 0],
+    zoom: 2
+  })
+
+  map.on('load', onMapLoad)
+})
+
+let userData = window.data = {}
+function onMapLoad () {
+  printApiHelp()
+
+  getStdin(function (stdin) {
+    const files = argv._.map((f) => path.resolve(process.cwd(), f))
+    const data = argv._.map((f) => JSON.parse(fs.readFileSync(f)))
+    if (stdin) {
+      files.push('STDIN')
+      data.push(JSON.parse(stdin))
+    }
+
+    map.batch(function (batch) {
+      files.forEach((f, i) => {
+        let id = unique(map.getStyle().sources, path.basename(f).replace(/\..*$/, ''))
+        let actualData = data[i]
+        addData(batch, id, f)
+        userData[id] = actualData
+      })
+    })
+
+    fitGeojsonExtent(data)
+    printData(userData)
+  })
+
+  // set up a little console API
+  window.addToMap = function (data) {
+    map.batch(function (batch) {
+      addData(batch, unique(map.getStyle().sources, 'data'), data)
+      fitGeojsonExtent(data)
+    })
+  }
+  window.fitGeojsonExtent = fitGeojsonExtent
+}
+
+function unique (sources, attemptedId) {
+  let count = 1
+  attemptedId = attemptedId || ''
+  let current = attemptedId
+  while (sources[current]) { current = [attemptedId, count++].join('-') }
+  return current
+}
+
+function fitGeojsonExtent (data) {
   let ext
   if (Array.isArray(data)) {
     ext = data.reduce(extent, null)
@@ -87,43 +103,47 @@ function fitBounds (data) {
     curve: 1.1,
     padding: 20
   })
-
-  // let el = document.getElementById('map')
-  // let bounds = el.getBoundingClientRect()
-  // bounds = [[0, 0], [bounds.width, bounds.height]]
-  // console.log(bounds, dataLayers)
-  // map.featuresIn(bounds, {
-  //   includeGeometry: true,
-  //   layer: dataLayers
-  // }, function (err, features) {
-  //   if (err) { throw err }
-  //   let ext = extent({ type: 'FeatureCollection', features: features })
-  //   console.log(ext, features)
-  //   map.fitBounds([ [ext[0], ext[1]], [ext[2], ext[3]] ])
-  // })
 }
 
-function addData (batch, id, data, layers) {
-  if (!batch) { batch = window.map }
+function addData (batch, id, data) {
+  const colorProperties = [
+    'fill-color',
+    'line-color',
+    'circle-color'
+  ]
+  let color = toColor(id, 1)
   batch.addSource(id, new mapboxgl.GeoJSONSource({data: data}))
-  for (let type in styles) {
-    let styleid = type + '_' + id
-    let style = cloneStyle(styles[type])
-    style.id = styleid
-    style.source = id
-    style.interactive = true
+  for (let type in dataLayers) {
+    let style = Object.assign({}, dataLayers[type], {
+      id: id + '_' + type,
+      source: id,
+      layout: Object.assign({}, dataLayers[type].layout),
+      paint: Object.assign({}, dataLayers[type].paint)
+    })
     style.layout.visibility = 'visible'
+    colorProperties.forEach((key) => {
+      if (style.paint[key]) { style.paint[key] = color }
+    })
     batch.addLayer(style)
-    layers.push(styleid)
   }
 }
 
-function cloneStyle (s) {
-  let cloned = Object.assign({}, s)
-  for (let k in cloned) {
-    if (k.startsWith('_')) {
-      delete cloned[k]
-    }
-  }
-  return cloned
+function printApiHelp () {
+  const message = `
+  %cData is available to play with in window.data, and Turf.js is in scope as
+  %cturf.*%c (see http://turfjs.org/).
+
+  Add data to the map with %caddDataToMap(moreGeojson)`
+
+  let text = 'color: blue; font-weight: normal;'
+  let code = 'color: black; font-weight: bold; font-family: monospace;'
+  console.info(message, text, code, text, code)
 }
+
+function printData (data) {
+  for (let k in data) {
+    console.log('%c' + k, 'color: green; font-weight: bold;')
+    console.log(data[k])
+  }
+}
+

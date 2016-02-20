@@ -1,4 +1,4 @@
-# vgj
+# gjv
 
 A simple GeoJSON viewer, inspired by the incredible convenience of
 [vmd](https://github.com/yoshuawuyts/vmd).  Built with
@@ -9,7 +9,7 @@ Prior art: [geojsonapp](https://github.com/mick/geojsonapp).
 ## Install
 
 ```
-npm install -g vgj
+npm install -g gjv
 ```
 
 ## Usage

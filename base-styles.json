@@ -1,0 +1,89 @@
+{
+  "version": 8,
+  "name": "VGJ",
+  "center": [
+    -29.25002498289942,
+    -1.1368683772161603e-13
+  ],
+  "zoom": 0.4777581530767025,
+  "bearing": 0,
+  "pitch": 0,
+  "sources": {
+    "land": {
+      "type": "geojson",
+      "data": "ne_110m_land.geojson"
+    }
+  },
+  "layers": [
+    {
+      "type": "background",
+      "paint": {
+        "background-color": "hsl(206, 76%, 66%)"
+      },
+      "layout": {
+        "visibility": "visible"
+      },
+      "id": "background",
+      "metadata": {},
+      "interactive": true
+    },
+    {
+      "layout": {
+        "visibility": "visible"
+      },
+      "type": "circle",
+      "source": "land",
+      "id": "point-data",
+      "paint": {
+        "circle-color": "hsl(22, 73%, 56%)"
+      },
+      "interactive": true,
+      "filter": [
+        "==",
+        "$type",
+        "Point"
+      ]
+    },
+    {
+      "layout": {
+        "visibility": "visible"
+      },
+      "type": "line",
+      "source": "land",
+      "id": "line-data",
+      "paint": {
+        "line-color": "hsl(22, 73%, 56%)",
+        "line-width": 2
+      },
+      "interactive": true,
+      "filter": [
+        "==",
+        "$type",
+        "LineString"
+      ]
+    },
+    {
+      "layout": {
+        "visibility": "visible"
+      },
+      "type": "fill",
+      "source": "land",
+      "id": "polygon-data",
+      "paint": {
+        "fill-color": "hsl(22, 73%, 56%)",
+        "fill-opacity": 0.5
+      },
+      "interactive": true,
+      "filter": [
+        "==",
+        "$type",
+        "Polygon"
+      ]
+    }
+  ],
+  "created": "2016-02-19T18:26:31.923Z",
+  "id": "ciku12ple008m92klkh7ujf32",
+  "modified": "2016-02-20T15:03:38.388Z",
+  "owner": "anandthakker",
+  "draft": false
+}
