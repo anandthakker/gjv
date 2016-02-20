@@ -5,7 +5,7 @@ A simple cli-driven GeoJSON viewer, motivated by the incredible convenience of
 
 Built with [electron](http://electron.atom.io/) and [mapbox-gl](https://github.com/mapbox/mapbox-gl-js), and owes much to this prior art: [geojsonapp](https://github.com/mick/geojsonapp).
 
-![demo](demo-1.gif)
+![demo](demo.gif)
 
 ![demo](demo-2.gif)
 
