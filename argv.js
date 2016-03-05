@@ -19,4 +19,9 @@ const argv = require('yargs')
 .usage('Usage: $0 [FILE] or cat some.geojson | $0')
 .argv
 
+// include stdin if it isn't in the list
+if (!process.stdin.isTTY && !argv._.some((f) => f.startsWith('stdin://'))) {
+  argv._.push('stdin://stdin')
+}
+
 module.exports = argv
