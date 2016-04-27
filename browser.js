@@ -44,6 +44,7 @@ isReachable('mapbox.com', function (_, online) {
   })
 
   map.on('load', onMapLoad)
+  map.on('error', function (err) { console.error(err) })
 })
 
 let userData = window.data = {}

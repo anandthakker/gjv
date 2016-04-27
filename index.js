@@ -32,8 +32,10 @@ app.on('activate', () => {
 app.on('ready', () => {
   mainWindow = createMainWindow()
   const protocol = electron.protocol
-  protocol.registerStringProtocol('stdin', function (req, callback) {
-    getStdin(callback)
+  protocol.registerBufferProtocol('stdin', function (req, callback) {
+    getStdin(function (stdin) {
+      callback({ mimeType: 'application/json', charset: 'utf-8', data: stdin })
+    })
   })
 })
 

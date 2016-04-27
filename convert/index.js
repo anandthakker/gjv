@@ -2,8 +2,8 @@
 const fs = require('fs')
 const path = require('path')
 const queue = require('queue-async')
-const getStdin = require('get-stdin')
 const sniff = require('mapbox-file-sniff').sniff
+const getStdin = require('remote').require('./get-stdin')
 
 const types = {
   geojson: require('./geojson'),
@@ -21,7 +21,7 @@ module.exports = function convert (files, callback) {
 
 function handleFile (file, cb) {
   if (file.startsWith('stdin://')) {
-    getStdin().then(function (stdin) { handleData(stdin, cb) })
+    getStdin(function (stdin) { handleData(stdin, cb) })
   } else {
     file = path.resolve(process.cwd(), file)
     fs.readFile(file, function (err, data) {
