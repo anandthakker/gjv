@@ -44,4 +44,4 @@ Builds the app for OS X, Linux, and Windows, using [electron-packager](https://g
 
 ## License
 
-MIT © Anand Thakker (http://anand.codes)
+MIT © Anand Thakker (http://www.anandthakker.net)
